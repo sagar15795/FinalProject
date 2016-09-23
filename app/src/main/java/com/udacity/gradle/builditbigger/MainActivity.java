@@ -3,12 +3,18 @@ package com.udacity.gradle.builditbigger;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.example.MyJokes;
 import com.example.jokeview.JokeActivity;
+import com.udacity.gradle.builditbigger.data.model.JokeReply;
+import com.udacity.gradle.builditbigger.data.remote.BaseAPIManager;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -17,6 +23,8 @@ public class MainActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
     }
 
 
@@ -43,11 +51,25 @@ public class MainActivity extends ActionBarActivity {
     }
 
     public void tellJoke(View view) {
-        Intent intent =new Intent(this, JokeActivity.class);
-        intent.putExtra(JokeActivity.JOKE_INTENT,new MyJokes().getMeJoke());
-        startActivity(intent);
+
+        new BaseAPIManager().getJokeApi().getJoke().enqueue(new Callback<JokeReply>() {
+            @Override
+            public void onResponse(Call<JokeReply> call, Response<JokeReply> response) {
+                Log.e("TAG", "onResponse:"+ response.body().getData());
+                Intent intent =new Intent(MainActivity.this, JokeActivity.class);
+                intent.putExtra(JokeActivity.JOKE_INTENT,response.body().getData());
+                startActivity(intent);
+            }
+
+            @Override
+            public void onFailure(Call<JokeReply> call, Throwable t) {
+                Log.e("TAG", "onResponse:"+ t.getLocalizedMessage());
+            }
+        });
+
         //Toast.makeText(this, new MyJokes().getMeJoke(), Toast.LENGTH_SHORT).show();
     }
+
 
 
 }
